@@ -2,7 +2,7 @@ import mysql.connector as mysql
 import time
 
 
-path = 'C:\\Users\\ricas\\Documents\\testethales';
+path = 'C:\\Users\\rebeca\\Documents\\entrada-thales';
 
 mydb = mysql.connect(
   host="localhost",
