@@ -1,5 +1,6 @@
 import mysql.connector as mysql
 import time
+import os
 
 
 path = 'C:\\Users\\rebeca\\Documents\\entrada-thales';
@@ -13,18 +14,23 @@ mydb = mysql.connect(
 
 
 def setinsert(query, params):
-  mycursor = mydb.cursor()     
+  database = mysql.connect(
+    host="localhost",
+    user="root",
+    password="1234",
+    database="thales"
+  )
+
+  mycursor = database.cursor()     
   mycursor.execute(query, params)
-  mydb.commit()
+  database.commit()
   
   return mycursor.lastrowid
-    
 
 iccds = []
-start = time.time()
-
 values = []
-with open(f'{path}/teste.txt') as file:
+
+with open(f'{path}/TA080240.txt') as file:
   for index, row in enumerate(file.readlines()):
     if index < 12:
       values.append(row.split(':')[1].strip())
@@ -32,6 +38,8 @@ with open(f'{path}/teste.txt') as file:
     if index >= 14:
       if row != '\n':
         iccds.append(row.replace('\n', ''))
+
+start = time.time()
 
 archive_query = '''
   INSERT INTO TblArchive (Item_Code,Item_Description,Customer, Provider, Packaging, CUSTOMER_PO,Batch,  QUANTITY, HLR, EAN, Packaging_2, Profile,  ID_Situation_key )
@@ -158,4 +166,4 @@ for row in range(0, len(iccds)):
   setinsert(kit_box_query, (iccds[row], bags_ids[x], innerboxs_ids[z], outerboxes_ids[v], archive_id, kit_collection_id, 1))
 
 end = time.time()
-print(end - start)
+print('{:.2f}'.format(end - start))
