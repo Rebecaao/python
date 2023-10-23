@@ -245,7 +245,7 @@ def main():
         data = {
           'Iccid': ICCIDS[row],
           'ID_Archive_key': archive_id,
-          'ID_CollectionKit_key': 1,
+          'ID_CollectionKit_key': collection_id,
           'ID_Situation_key': 1,
           'ID_BagTen_key': bags[bag_index], 
           'ID_InnerBox_key': innerboxes[innerbox_index], 
