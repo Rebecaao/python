@@ -3,7 +3,7 @@ import time
 import re
 import mysql.connector as mysql
 
-PATH = 'C:\\Users\\ricas\\Documents\\testethales'
+PATH = 'C:\\Users\\Rebeca.UPTECH\\GSM'
 ICCIDS = []
 
 def connect_to_db():
