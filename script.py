@@ -3,14 +3,14 @@ import time
 import re
 import psycopg2
 
-PATH = 'C:\\Users\\ricas\\Desktop\\python'
+PATH = 'C:\\Users\\Rebeca.UPTECH\\Desktop\\Thales'
 ICCIDS = []
 
 def connect_to_db():
     '''
     Conecta ao banco de dados e retorna a conexão
     '''
-    return psycopg2.connect(host="192.168.15.13", user="postgres", password="mateme", database="Loader_dev")
+    return psycopg2.connect(host="192.168.15.14", user="postgres", password="mateme", database="thales")
 
 def insert_into_database(query, params):
     '''
@@ -171,63 +171,65 @@ def main():
             outerboxes = insert_values(interval=1000, query=query, fixed_values=fixed_values, return_query=return_query)
             print('Tempo para inserir Outerboxes: {:.2f}s'.format(time.time() - start))
 
-            # Inserindo InnerBoxes
+                    # Inserindo InnerBoxes
             start = time.time()
 
             interval = 100
             query = '''
-              INSERT INTO tblInnerBox 
-              (Starting_quantity, End_Quantity, Initial_iccid, End_iccid, ID_CollectionInnerBox_key, ID_OuterBox_key, ID_SituationKit_key, ID_Situation_key) 
-              VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+                INSERT INTO tblInnerBox_thales
+                (Starting_quantity, End_Quantity, Initial_iccid, End_iccid, ID_CollectionInnerBox_key, ID_OuterBox_key, ID_SituationKit_key, ID_Situation_key) 
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
             '''
-            fixed_values = {'ID_SituationInner_key': 1, 'ID_Situation_key': 1 }
-            
+            fixed_values = {'ID_SituationInner_key': 1, 'ID_Situation_key': 1}
+
             parent = {'values': outerboxes, 'interval': 1000, 'column_name': 'ID_OuterBox_key'}
             parent_control, parent_index = (0, 0)
             values_to_insert = []
             innerbox_control, innerbox_interval = (1, 10)
-            collection_id = insert_collection('tblCollectionInnerBox', archive_id)
+
+            # Criação da primeira coleção antes do loop
+            collection_id = insert_collection('tblCollectionInnerBox_thales', archive_id)
             collections = [str(collection_id)]
 
             for row in range(0, len(ICCIDS), interval):
-              data = {
-                'Starting_quantity': row + 1,
-                'End_Quantity': row + interval,
-                'Initial_iccid': ICCIDS[row],
-                'End_iccid': ICCIDS[row + interval - 1],
-                'ID_CollectionInnerBox_key': collection_id
-              }
+                data = {
+                    'Starting_quantity': row + 1,
+                    'End_Quantity': row + interval,
+                    'Initial_iccid': ICCIDS[row],
+                    'End_iccid': ICCIDS[row + interval - 1],
+                    'ID_CollectionInnerBox_key': collection_id
+                }
 
-              if innerbox_control == innerbox_interval:
-                collection_id = insert_collection('tblCollectionInnerBox', archive_id)
-                innerbox_control = 0
-                collections.append(str(collection_id))
+                if innerbox_control == innerbox_interval:
+                    # Se já atingiu o intervalo, cria uma nova coleção
+                    collection_id = insert_collection('tblCollectionInnerBox_thales', archive_id)
+                    innerbox_control = 0
+                    collections.append(str(collection_id))
 
-              if parent_control == parent['interval']:
-                parent_control = 0
-                parent_index += 1
+                if parent_control == parent['interval']:
+                    parent_control = 0
+                    parent_index += 1
 
-              data[parent['column_name']] = parent['values'][parent_index]
-              
-              parent_control += interval
-              innerbox_control += 1
+                data[parent['column_name']] = parent['values'][parent_index]
 
-              data.update(fixed_values)
-              values_to_insert.append(list(data.values()))
+                parent_control += interval
+                innerbox_control += 1
 
-            return_query = f'''select ID_InnerBox from tblInnerbox WHERE ID_CollectionInnerBox_key in ({','.join(collections)})'''
+                data.update(fixed_values)
+                values_to_insert.append(list(data.values()))
+
+            return_query = f'''select ID_InnerBox from tblInnerbox_thales WHERE ID_CollectionInnerBox_key in ({','.join(collections)})'''
             innerboxes = insert_multiple_values(query, values_to_insert, return_query)
 
             print('Tempo para inserir Innerboxes: {:.2f}s'.format(time.time() - start))
-
             # Inserindo Bags
             start = time.time()
             query = '''
-              INSERT INTO tblBagTen 
+              INSERT INTO tblBagTen_thales
               (Starting_quantity, End_Quantity, Initial_iccid, End_iccid, ID_InnerBox_key, ID_Archive_key, ID_SituationKit_key, ID_Situation_key) 
               VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
             '''
-            return_query = f'''select ID_BagTen from tblBagTen WHERE ID_Archive_key = {archive_id}'''
+            return_query = f'''select ID_BagTen from tblBagTen_thales WHERE ID_Archive_key = {archive_id}'''
 
             fixed_values = {'ID_Archive_key': archive_id, 'ID_SituationInner_key': 1, 'ID_Situation_key': 1}
 
